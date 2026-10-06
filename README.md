@@ -31,3 +31,64 @@ Design and implement a secure, automated departmental network share for a financ
 - Verified automatic policy propagation upon logon; confirmed the `Z:` drive mounted with the custom departmental label.
 - Tested end-to-end file creation and modification permissions within the mapped volume.
 - Validated endpoint hardening policies (standard domain user access restrictions on administrative command utilities).
+---
+
+## Project 2: Bulk Active Directory User Provisioning via PowerShell Automation
+
+### Overview
+Automated the enterprise onboarding pipeline by parsing an HR-generated CSV roster (`employees.csv`) to bulk-create Active Directory user accounts using PowerShell scripting, enforcing password baselines and target OU placement.
+
+### Key Implementation Details
+- **Data Source:** Structured employee roster (`C:\employees.csv`) containing departmental attributes, titles, and names.
+- **Automation Logic:**
+  - Standardized username generation formula: `FirstInitial + LastName` (e.g., `sconnor`).
+  - UPN formatting aligned with domain suffix (`@adlab.local`).
+  - Secure credential assignment using `ConvertTo-SecureString` with mandatory password change flag (`-ChangePasswordAtLogon $true`).
+  - Pre-execution conflict detection (`Get-ADUser`) to prevent account collisions.
+  - Automated targeted placement into the `Finance` Organizational Unit (`OU=Finance,DC=adlab,DC=local`).
+
+### Automation Script (`BulkUserProvisioning.ps1`)
+```powershell
+Import-Module ActiveDirectory
+
+$csvPath = "C:\employees.csv"
+
+if (-not (Test-Path $csvPath)) {
+    Write-Error "CSV file not found at $csvPath. Please verify location."
+    Exit
+}
+
+$users = Import-Csv -Path $csvPath
+$tempPassword = ConvertTo-SecureString "Welcome2026!" -AsPlainText -Force
+
+foreach ($user in $users) {
+    $firstname = $user.Firstname.Trim()
+    $lastname  = $user.Lastname.Trim()
+    $dept      = $user.Department.Trim()
+    $title     = $user.Title.Trim()
+    
+    $username  = ($firstname.Substring(0,1) + $lastname).ToLower()
+    $upn       = "$username@adlab.local"
+    $name      = "$firstname $lastname"
+
+    $targetOU = "OU=Finance,DC=adlab,DC=local"
+
+    if (Get-ADUser -Filter "SamAccountName -eq '$username'") {
+        Write-Warning "User account $username already exists. Skipping."
+    } else {
+        New-ADUser `
+            -Name $name `
+            -GivenName $firstname `
+            -Surname $lastname `
+            -SamAccountName $username `
+            -UserPrincipalName $upn `
+            -Title $title `
+            -Department $dept `
+            -Path $targetOU `
+            -AccountPassword $tempPassword `
+            -Enabled $true `
+            -ChangePasswordAtLogon $true
+
+        Write-Host "Successfully provisioned user account: $username ($name)" -ForegroundColor Green
+    }
+}
