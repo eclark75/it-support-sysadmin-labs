@@ -218,3 +218,22 @@ Name                 Type PrimaryServer IPAddress
 ----                 ---- ------------- ---------
 portal.adlab.local  CNAME                          
 intranet.adlab.local    A               192.168.10.20
+---
+
+## Project 6: Enterprise Security Auditing, Incident Detection & Automated Event Monitoring
+
+### Overview
+Architected centralized security event auditing and incident detection on Windows Server 2022 (`adlab.local`). Configured advanced audit policies across authentication subcategories, established structured PowerShell event log querying for brute-force detection (Event ID 4625) and account lockout tracking (Event ID 4740), and verified telemetry ingestion via controlled authentication failure simulations.
+
+### Technical Implementation & Security Policies
+
+#### 1. Advanced Security Audit Policy Configuration
+Enforced granular subcategory auditing using `auditpol.exe` to track unauthorized access attempts while avoiding log bloat:
+```powershell
+auditpol /set /category:"Logon/Logoff" /success:enable /failure:enable
+auditpol /set /subcategory:"User Account Management" /success:enable /failure:enable
+gpupdate /force
+Get-WinEvent -FilterHashtable @{
+    LogName   = 'Security'
+    Id        = 4625
+} -MaxEvents 1 | Format-List TimeCreated, Id, Message
