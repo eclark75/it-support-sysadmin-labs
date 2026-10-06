@@ -92,3 +92,75 @@ foreach ($user in $users) {
         Write-Host "Successfully provisioned user account: $username ($name)" -ForegroundColor Green
     }
 }
+---
+
+## Project 3: Automated Account Deprovisioning & Offboarding (Identity Lifecycle Management)
+
+### Overview
+Engineered a secure, automated offboarding workflow in PowerShell to process HR separation records (`termed_employees.csv`), revoke unauthorized access, mitigate lingering credential risks, and maintain compliance-ready audit trails within Active Directory.
+
+### Architecture & Security Workflow
+- **Data Ingestion:** Ingested structured HR termination rosters containing target usernames, ITSM ticket IDs, and separation reasons.
+- **Account State Isolation:** Executed immediate administrative deactivation (`Disable-ADAccount`).
+- **Credential Invalidation:** Reset passwords to cryptographically random 24-character strings (`Set-ADAccountPassword`) to eliminate session replay and credential reuse.
+- **Permission Revocation:** Enumerated and revoked all security and distribution group memberships (`MemberOf`) to nullify access to shared file repositories, SaaS integrations, and internal resources.
+- **Compliance Audit Stamping:** Injected timestamped operational metadata into the `Description` attribute documenting the ITSM reference ticket and departure reason.
+- **Quarantine Relocation:** Migrated deprovisioned user objects out of operational OUs into a dedicated quarantine unit (`OU=Disabled_Accounts,DC=adlab,DC=local`).
+
+### Automation Script (`DeprovisionUsers.ps1`)
+```powershell
+Import-Module ActiveDirectory
+
+$csvPath = "C:\termed_employees.csv"
+$quarantineOU = "OU=Disabled_Accounts,DC=adlab,DC=local"
+$timestamp = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
+
+if (-not (Test-Path $csvPath)) {
+    Write-Error "CSV roster not found at $csvPath."
+    Exit
+}
+
+$termedUsers = Import-Csv -Path $csvPath
+
+foreach ($record in $termedUsers) {
+    $samAccount = $record.Username.Trim()
+    $ticket     = $record.TicketNumber.Trim()
+    $reason     = $record.Reason.Trim()
+
+    $adUser = Get-ADUser -Filter "SamAccountName -eq '$samAccount'" -Properties MemberOf, Description
+
+    if ($adUser) {
+        Write-Host "Processing deprovisioning for: $samAccount..." -ForegroundColor Cyan
+
+        # 1. Disable the Account
+        Disable-ADAccount -Identity $adUser.DistinguishedName
+
+        # 2. Randomize password to kill credential reuse
+        $randomSecret = (-join ((65..90) + (97..122) + (48..57) | Get-Random -Count 24 | ForEach-Object {[char]$_}))
+        $secureSecret = ConvertTo-SecureString $randomSecret -AsPlainText -Force
+        Set-ADAccountPassword -Identity $adUser.DistinguishedName -NewPassword $secureSecret -Reset
+
+        # 3. Strip all security and distribution groups
+        $groups = $adUser.MemberOf
+        foreach ($group in $groups) {
+            Remove-ADGroupMember -Identity $group -Members $adUser.DistinguishedName -Confirm:$false
+            Write-Host "  [-] Revoked group: $group" -ForegroundColor Yellow
+        }
+
+        # 4. Stamp Audit Trail into Description
+        $auditNote = "Offboarded on $timestamp | Ref: $ticket | Reason: $reason"
+        Set-ADUser -Identity $adUser.DistinguishedName -Description $auditNote
+
+        # 5. Move object to Disabled_Accounts OU
+        Move-ADObject -Identity $adUser.DistinguishedName -TargetPath $quarantineOU
+
+        Write-Host "[SUCCESS] $samAccount fully isolated in Disabled_Accounts." -ForegroundColor Green
+    } else {
+        Write-Warning "User $samAccount not found in Active Directory. Skipping."
+    }
+}Get-ADUser -Filter * -SearchBase "OU=Disabled_Accounts,DC=adlab,DC=local" -Properties Enabled, Description | 
+    Select-Object Name, SamAccountName, Enabled, Description | Format-Table -AutoSize
+Name          SamAccountName Enabled Description
+----          -------------- ------- -----------
+Sarah Connor  sconnor        False   Offboarded on 2026-10-06 08:05:12 | Ref: TKT-10492 | Reason: Resignation
+Michael Scott mscott         False   Offboarded on 2026-10-06 08:05:13 | Ref: TKT-10515 | Reason: Contract Ended
