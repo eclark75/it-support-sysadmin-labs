@@ -164,3 +164,34 @@ Name          SamAccountName Enabled Description
 ----          -------------- ------- -----------
 Sarah Connor  sconnor        False   Offboarded on 2026-10-06 08:05:12 | Ref: TKT-10492 | Reason: Resignation
 Michael Scott mscott         False   Offboarded on 2026-10-06 08:05:13 | Ref: TKT-10515 | Reason: Contract Ended
+---
+
+## Project 4: Enterprise Endpoint Security & Policy Enforcement via Group Policy (GPOs)
+
+### Overview
+Architected and deployed enterprise-grade Group Policy Objects (GPOs) linked to departmental Organizational Units within Active Directory (`adlab.local`). Established endpoint security controls to mitigate walk-up physical threats, restrict unauthorized removable media to prevent data exfiltration, and streamline resource accessibility through automated drive mappings.
+
+### Policy Implementations & Technical Configurations
+
+| Policy Identifier | Scope & Target | Technical Path / Mechanism | Security & Operational Impact |
+|---|---|---|---|
+| **GPO_SecScreenTimeout** | `OU=Finance` (Computer) | `Computer Config -> Policies -> Windows Settings -> Security Settings -> Local Policies -> Security Options -> Interactive logon: Machine inactivity limit` (900 sec) | Mitigates unauthorized physical access by automatically locking idle unattended endpoints after 15 minutes. |
+| **GPO_SecUSBlock** | `OU=Finance` (User) | `User Config -> Policies -> Admin Templates -> System -> Removable Storage Access -> All Removable Storage classes: Deny all access` (Enabled) | Zero-trust removable storage enforcement. Prevents unauthorized USB data exfiltration and blocks external malware vectors. |
+| **GPO_OpsDriveMapping** | `OU=Finance` (User) | `User Config -> Preferences -> Windows Settings -> Drive Maps` (Action: Update, Location: `\\DC01-Lab\Finance`, Drive: `F:`) | Standardizes centralized department file access by mounting enterprise network shares automatically at user logon. |
+
+### Infrastructure Configuration
+- Initialized dedicated SMB department share hosted on the domain controller:
+```powershell
+New-Item -ItemType Directory -Path "C:\FinanceShare" -Force
+New-SmbShare -Name "Finance" -Path "C:\FinanceShare" -FullAccess "Domain Admins" -ChangeAccess "Domain Users"
+Get-GPInheritance -Target "OU=Finance,DC=adlab,DC=local" | 
+    Select-Object -ExpandProperty InheritedGpoLinks | 
+    Select-Object DisplayName, Enabled, Order | Format-Table -AutoSize
+DisplayName               Enabled Order
+-----------               ------- -----
+FindAssetSecurityPolicy      True     1
+FinanceShare                 True     2
+GPO_SecScreenTimeout         True     3
+GPO_SecUSBlock               True     4
+GPO_OpsDriveMapping          True     5
+DefaultDomainPolicy          True     6
