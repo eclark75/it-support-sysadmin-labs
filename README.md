@@ -195,3 +195,26 @@ GPO_SecScreenTimeout         True     3
 GPO_SecUSBlock               True     4
 GPO_OpsDriveMapping          True     5
 DefaultDomainPolicy          True     6
+---
+
+## Project 5: Core Network Infrastructure — Enterprise DNS & DHCP Services Deployment
+
+### Overview
+Configured and deployed foundational core network services within Windows Server 2022 (`adlab.local`). Provisioned an enterprise DHCP server authorized in Active Directory to manage corporate endpoint IP allocations, established IP reservation pools, configured critical network scope options, and structured internal DNS forward/reverse resolution zones including service alias records (CNAME).
+
+### Technical Implementations & Architecture
+
+#### 1. Dynamic Host Configuration Protocol (DHCP) Deployment
+- **Role Provisioning & AD Authorization:** Installed DHCP server binaries and authorized the server instance within Active Directory to prevent rogue DHCP server interception:
+  ```powershell
+  Install-WindowsFeature -Name DHCP -IncludeManagementTools
+  Add-DhcpServerInDC -DnsName "$env:COMPUTERNAME.$env:USERDNSDOMAIN"
+Get-DhcpServerv4Scope | Format-Table ScopeId, Name, State, StartRange, EndRange -AutoSize
+ScopeId      Name                   State  StartRange   EndRange
+-------      ----                   -----  ----------   --------
+192.168.10.0 Corporate-Workstations Active 192.168.10.1 192.168.10.254
+Resolve-DnsName -Name "portal.adlab.local" | Format-Table Name, Type, PrimaryServer, IPAddress -AutoSize
+Name                 Type PrimaryServer IPAddress
+----                 ---- ------------- ---------
+portal.adlab.local  CNAME                          
+intranet.adlab.local    A               192.168.10.20
