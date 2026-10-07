@@ -250,3 +250,4 @@ Established a systematic, bottom-up troubleshooting methodology and operational 
 * **Simulated Incident Resolution (INC-1082):** Diagnosed and resolved an Automatic Private IP Addressing (APIPA `169.254.x.x`) client outage via automated DHCP lease re-negotiation and DNS cache flushing within SLA limits.
 
 📂 **Full Documentation & Command Runbook:** [View Network Diagnostics Runbook](./projects/network-diagnostics-remote-support/README.md)
+| 08 | [Enterprise Linux System Administration, Security & Automation](projects/project-08-linux-sysadmin/README.md) | Ubuntu, Bash Automation, UFW Firewall, Identity & Privilege Management, Permissions |
