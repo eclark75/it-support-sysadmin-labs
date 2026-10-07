@@ -237,3 +237,16 @@ Get-WinEvent -FilterHashtable @{
     LogName   = 'Security'
     Id        = 4625
 } -MaxEvents 1 | Format-List TimeCreated, Id, Message
+---
+
+## Project 7: Enterprise IT Support: Network Diagnostics & Remote Support Runbook
+
+### Overview
+Established a systematic, bottom-up troubleshooting methodology and operational runbook for Tier-1 and Tier-2 network connectivity, DNS resolution, and remote desktop administration across enterprise client environments.
+
+### Key Implementation & Technical Coverage
+* **OSI Bottom-Up Diagnostics:** Implemented standardized CLI routines across Physical through Application layers utilizing `ipconfig`, `ping`, `nslookup`, `tracert`, and `Test-NetConnection`.
+* **Remote Support Operations:** Documented secure remote support workflows for domain and non-domain endpoints using Microsoft Quick Assist and Windows Remote Desktop Protocol (RDP / `mstsc`).
+* **Simulated Incident Resolution (INC-1082):** Diagnosed and resolved an Automatic Private IP Addressing (APIPA `169.254.x.x`) client outage via automated DHCP lease re-negotiation and DNS cache flushing within SLA limits.
+
+📂 **Full Documentation & Command Runbook:** [View Network Diagnostics Runbook](./projects/network-diagnostics-remote-support/README.md)
