@@ -251,3 +251,10 @@ Established a systematic, bottom-up troubleshooting methodology and operational 
 
 📂 **Full Documentation & Command Runbook:** [View Network Diagnostics Runbook](./projects/network-diagnostics-remote-support/README.md)
 | 08 | [Enterprise Linux System Administration, Security & Automation](projects/project-08-linux-sysadmin/README.md) | Ubuntu, Bash Automation, UFW Firewall, Identity & Privilege Management, Permissions |
+---
+
+### Enterprise SIEM & Endpoint Monitoring (Wazuh Lab)
+* **Focus:** Enterprise telemetry, CIS Windows 11 Enterprise Benchmark compliance, and Windows security event log auditing.
+* **Architecture:** Wazuh Manager appliance on Oracle VM VirtualBox (Bridged Subnet) monitoring a Windows 11 endpoint over TCP port 1514.
+* **Detection & Compliance:** Evaluated 482 system hardening checks; simulated and verified real-time ingestion of Windows Event ID 4625 (Rule 60122).
+* **Dedicated Project Repository:** [wazuh-siem-endpoint-monitoring](https://github.com/eclark75/wazuh-siem-endpoint-monitoring)
