@@ -258,5 +258,5 @@ Established a systematic, bottom-up troubleshooting methodology and operational 
 * **Architecture:** Wazuh Manager appliance on Oracle VM VirtualBox (Bridged Subnet) monitoring a Windows 11 endpoint over TCP port 1514.
 * **Detection & Compliance:** Evaluated 482 system hardening checks; simulated and verified real-time ingestion of Windows Event ID 4625 (Rule 60122).
 * **Dedicated Project Repository:** [wazuh-siem-endpoint-monitoring](https://github.com/eclark75/wazuh-siem-endpoint-monitoring)
-* [Enterprise IAM: Microsoft Entra ID RBAC & Scoped Delegation](entra-id-rbac-delegation/README.md) - Delegated Helpdesk & User Administrator role architecture, Administrative Unit scoping, and identity lifecycle testing.
 * [Enterprise Administration: Microsoft 365 Messaging & Entra ID RBAC](entra-id-rbac-delegation/README.md) - Cloud identity governance, Helpdesk/User Admin delegation, Administrative Unit scoping, and M365 shared support mailbox architecture.
+
