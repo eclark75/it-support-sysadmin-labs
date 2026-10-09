@@ -27,3 +27,13 @@ Configured and verified enterprise Role-Based Access Control (RBAC) and scoped i
 * Cloud Identity Governance & RBAC
 * Administrative Units (AU) Scoping
 * Identity Lifecycle Management & Helpdesk Operations
+## Microsoft 365 Tenant Administration & Messaging Infrastructure
+
+### Operational Architecture
+* **Centralized Tier 1 Shared Mailbox:** Deployed `Helpdesk Support` (`helpdesk@RemnantsofFire.onmicrosoft.com`) to serve as the unified intake queue for tenant IT requests.
+* **Access Delegation & Permissions:**
+  * Configured `Read and Manage` (Full Access) delegation for IT operations staff.
+  * Granted `Send As` authority to enable outbound ticketing correspondence under the shared support alias.
+* **Functional Mail Routing Verification:**
+  * Successfully validated outbound message dispatch from the shared identity to verify Exchange Online mail flow and permission inheritance.
+  * Verified audit logging and message tracking across delegated sessions.
