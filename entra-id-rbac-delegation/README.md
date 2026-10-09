@@ -37,3 +37,4 @@ Configured and verified enterprise Role-Based Access Control (RBAC) and scoped i
 * **Functional Mail Routing Verification:**
   * Successfully validated outbound message dispatch from the shared identity to verify Exchange Online mail flow and permission inheritance.
   * Verified audit logging and message tracking across delegated sessions.
+- **Self-Service Password Reset (SSPR) & Authentication Methods Deployment:** Enabled tenant-wide SSPR policy and deployed modern authentication methods (Email OTP and Microsoft Authenticator) in Microsoft Entra ID. Verified end-to-end self-service recovery workflows in isolated sessions to automate user credential resets and deflect Tier 1 help desk ticket volume.
