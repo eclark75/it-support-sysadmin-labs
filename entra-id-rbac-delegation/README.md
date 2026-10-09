@@ -38,3 +38,15 @@ Configured and verified enterprise Role-Based Access Control (RBAC) and scoped i
   * Successfully validated outbound message dispatch from the shared identity to verify Exchange Online mail flow and permission inheritance.
   * Verified audit logging and message tracking across delegated sessions.
 - **Self-Service Password Reset (SSPR) & Authentication Methods Deployment:** Enabled tenant-wide SSPR policy and deployed modern authentication methods (Email OTP and Microsoft Authenticator) in Microsoft Entra ID. Verified end-to-end self-service recovery workflows in isolated sessions to automate user credential resets and deflect Tier 1 help desk ticket volume.
+## Microsoft Entra ID Identity & Access Governance Lab
+
+### Environment Specifications
+- **Tenant Domain:** `eclark75.onmicrosoft.com`
+- **Identity Scope:** Cloud-native directory integrated with Microsoft 365
+- **Administrative Roles:** Scoped RBAC delegation (Helpdesk Administrator, User Administrator, Global Administrator)
+
+### Key Implementations & Operational Verifications
+- **Self-Service Password Reset (SSPR):** Configured tenant-wide SSPR policy to deflect routine credential-reset tickets and empower end users.
+- **Modern Authentication Methods:** Deployed Email One-Time Passcode (OTP) and Microsoft Authenticator push/OTP verification policies for self-service credential resets.
+- **End-to-End Recovery Validation:** Executed live password reset simulation via an isolated browser session (`https://passwordreset.microsoftonline.com`), verifying real-time OTP delivery, identity validation, and password changes.
+- **Directory Scope Troubleshooting:** Diagnosed and resolved authentication persistence and 403 Forbidden permission errors caused by multi-tenant routing between personal Microsoft accounts and the primary organizational directory.
