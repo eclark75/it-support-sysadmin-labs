@@ -18,8 +18,9 @@
 * Ingested user records via CSV (C:\ADLab\users.csv).
 * Dynamically created missing departmental Organizational Units.
 * Auto-generated standard sAMAccountNames and UPNs.
-* Provisioned accounts with temporary credentials (P@ssw0rd2026!Lab) forcing initial logon password reset.
-* # Enterprise Linux Host Access & OpenSSH Hardening Guide
+* Provisioned accounts with a temporary password entered at run time (not stored in the script), forcing a password reset at first logon.
+
+# Enterprise Linux Host Access & OpenSSH Hardening Guide
 
 ## 1. Project Overview & Architecture
 * **Objective:** Establish passwordless, cryptographic public-key authentication from a Windows client (PowerShell/OpenSSH) to a local Ubuntu/WSL environment while disabling insecure authentication vectors.

@@ -43,7 +43,7 @@ Automated the enterprise onboarding pipeline by parsing an HR-generated CSV rost
 - **Automation Logic:**
   - Standardized username generation formula: `FirstInitial + LastName` (e.g., `sconnor`).
   - UPN formatting aligned with domain suffix (`@adlab.local`).
-  - Secure credential assignment using `ConvertTo-SecureString` with mandatory password change flag (`-ChangePasswordAtLogon $true`).
+  - Secure credential assignment: the temporary password is entered at run time with `Read-Host -AsSecureString` (never stored in the script), with a mandatory password change at first logon (`-ChangePasswordAtLogon $true`).
   - Pre-execution conflict detection (`Get-ADUser`) to prevent account collisions.
   - Automated targeted placement into the `Finance` Organizational Unit (`OU=Finance,DC=adlab,DC=local`).
 
@@ -59,7 +59,10 @@ if (-not (Test-Path $csvPath)) {
 }
 
 $users = Import-Csv -Path $csvPath
-$tempPassword = ConvertTo-SecureString "Welcome2026!" -AsPlainText -Force
+
+# Prompt for the temporary password at run time so no credential is stored in the script.
+# Users must change it at first logon (-ChangePasswordAtLogon below).
+$tempPassword = Read-Host "Enter temporary password for new accounts" -AsSecureString
 
 foreach ($user in $users) {
     $firstname = $user.Firstname.Trim()
@@ -92,6 +95,8 @@ foreach ($user in $users) {
         Write-Host "Successfully provisioned user account: $username ($name)" -ForegroundColor Green
     }
 }
+```
+
 ---
 
 ## Project 3: Automated Account Deprovisioning & Offboarding (Identity Lifecycle Management)
@@ -158,12 +163,21 @@ foreach ($record in $termedUsers) {
     } else {
         Write-Warning "User $samAccount not found in Active Directory. Skipping."
     }
-}Get-ADUser -Filter * -SearchBase "OU=Disabled_Accounts,DC=adlab,DC=local" -Properties Enabled, Description | 
+}
+```
+
+### Verification
+```powershell
+Get-ADUser -Filter * -SearchBase "OU=Disabled_Accounts,DC=adlab,DC=local" -Properties Enabled, Description | 
     Select-Object Name, SamAccountName, Enabled, Description | Format-Table -AutoSize
+```
+```text
 Name          SamAccountName Enabled Description
 ----          -------------- ------- -----------
 Sarah Connor  sconnor        False   Offboarded on 2026-10-06 08:05:12 | Ref: TKT-10492 | Reason: Resignation
 Michael Scott mscott         False   Offboarded on 2026-10-06 08:05:13 | Ref: TKT-10515 | Reason: Contract Ended
+```
+
 ---
 
 ## Project 4: Enterprise Endpoint Security & Policy Enforcement via Group Policy (GPOs)
@@ -184,9 +198,15 @@ Architected and deployed enterprise-grade Group Policy Objects (GPOs) linked to 
 ```powershell
 New-Item -ItemType Directory -Path "C:\FinanceShare" -Force
 New-SmbShare -Name "Finance" -Path "C:\FinanceShare" -FullAccess "Domain Admins" -ChangeAccess "Domain Users"
+```
+
+### Verification: GPO inheritance on the Finance OU
+```powershell
 Get-GPInheritance -Target "OU=Finance,DC=adlab,DC=local" | 
     Select-Object -ExpandProperty InheritedGpoLinks | 
     Select-Object DisplayName, Enabled, Order | Format-Table -AutoSize
+```
+```text
 DisplayName               Enabled Order
 -----------               ------- -----
 FindAssetSecurityPolicy      True     1
@@ -195,6 +215,8 @@ GPO_SecScreenTimeout         True     3
 GPO_SecUSBlock               True     4
 GPO_OpsDriveMapping          True     5
 DefaultDomainPolicy          True     6
+```
+
 ---
 
 ## Project 5: Core Network Infrastructure — Enterprise DNS & DHCP Services Deployment
@@ -209,15 +231,29 @@ Configured and deployed foundational core network services within Windows Server
   ```powershell
   Install-WindowsFeature -Name DHCP -IncludeManagementTools
   Add-DhcpServerInDC -DnsName "$env:COMPUTERNAME.$env:USERDNSDOMAIN"
+  ```
+
+#### Verification: DHCP scope
+```powershell
 Get-DhcpServerv4Scope | Format-Table ScopeId, Name, State, StartRange, EndRange -AutoSize
+```
+```text
 ScopeId      Name                   State  StartRange   EndRange
 -------      ----                   -----  ----------   --------
 192.168.10.0 Corporate-Workstations Active 192.168.10.1 192.168.10.254
+```
+
+#### Verification: DNS alias (CNAME) resolution
+```powershell
 Resolve-DnsName -Name "portal.adlab.local" | Format-Table Name, Type, PrimaryServer, IPAddress -AutoSize
+```
+```text
 Name                 Type PrimaryServer IPAddress
 ----                 ---- ------------- ---------
 portal.adlab.local  CNAME                          
 intranet.adlab.local    A               192.168.10.20
+```
+
 ---
 
 ## Project 6: Enterprise Security Auditing, Incident Detection & Automated Event Monitoring
@@ -233,10 +269,16 @@ Enforced granular subcategory auditing using `auditpol.exe` to track unauthorize
 auditpol /set /category:"Logon/Logoff" /success:enable /failure:enable
 auditpol /set /subcategory:"User Account Management" /success:enable /failure:enable
 gpupdate /force
+```
+
+#### 2. Failed Logon Detection (Event ID 4625)
+```powershell
 Get-WinEvent -FilterHashtable @{
     LogName   = 'Security'
     Id        = 4625
 } -MaxEvents 1 | Format-List TimeCreated, Id, Message
+```
+
 ---
 
 ## Project 7: Enterprise IT Support: Network Diagnostics & Remote Support Runbook
@@ -250,7 +292,13 @@ Established a systematic, bottom-up troubleshooting methodology and operational 
 * **Simulated Incident Resolution (INC-1082):** Diagnosed and resolved an Automatic Private IP Addressing (APIPA `169.254.x.x`) client outage via automated DHCP lease re-negotiation and DNS cache flushing within SLA limits.
 
 📂 **Full Documentation & Command Runbook:** [View Network Diagnostics Runbook](./projects/network-diagnostics-remote-support/README.md)
-| 08 | [Enterprise Linux System Administration, Security & Automation](projects/project-08-linux-sysadmin/README.md) | Ubuntu, Bash Automation, UFW Firewall, Identity & Privilege Management, Permissions |
+
+---
+
+## Project 8: Enterprise Linux System Administration, Security & Automation
+* **Focus:** Ubuntu, Bash automation, UFW firewall, identity and privilege management, permissions.
+* 📂 **Full Documentation:** [View Linux Sysadmin Project](projects/project-08-linux-sysadmin/README.md)
+
 ---
 
 ### Enterprise SIEM & Endpoint Monitoring (Wazuh Lab)
